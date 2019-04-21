@@ -17,8 +17,8 @@ public class Main2 {
 		EventBus ev = new AsyncEventBus(Executors.newWorkStealingPool());
 		final Paddle paddle = new Paddle(0.1, 0.02);
 		final Ball ball = new Ball(0.03, 0.03);
-		int ncols=9;
-		int nrow=4;
+		int ncols=20;
+		int nrow=10;
 		final Brick[][] bricks = new Brick[nrow][ncols];
 
 		final double width = 1.0 / ncols;

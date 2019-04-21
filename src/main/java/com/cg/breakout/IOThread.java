@@ -63,6 +63,8 @@ public class IOThread
 			}
 		});
 
+		glfwSetCursorPosCallback(window, (window1, xpos, ypos) -> bus.post(new CursorPosEvent(xpos/WIDTH, ypos/HEIGHT)));
+
 		GLFWVidMode vidmode = glfwGetVideoMode(glfwGetPrimaryMonitor());
 		glfwSetWindowPos(window, (vidmode.width() - WIDTH) / 2, (vidmode.height() - HEIGHT) / 2);
 
@@ -73,6 +75,7 @@ public class IOThread
 
 		glfwSetWindowSizeCallback(window, (window1, width, height) -> {
 			glViewport(0, 0, width, height);
+			glfwSetCursorPosCallback(window, (window2, xpos, ypos) -> bus.post(new CursorPosEvent(xpos/width, ypos/height)));
 		});
 
 
@@ -94,12 +97,14 @@ public class IOThread
 
 				else {
 
-					logger.info("Rendering on thread " + Thread.currentThread().getName());
+					//logger.info("Rendering on thread " + Thread.currentThread().getName());
 					renderRequired = false;
 
 					// rendering code here
 
 					glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+				//glClearColor(0.8f,0.5f,1.0f,1.0f);
 
 					glMatrixMode(GL_PROJECTION);
 					glLoadIdentity();
@@ -107,7 +112,7 @@ public class IOThread
 					glMatrixMode(GL_MODELVIEW);
 
 
-					glColor3b((byte) 100, (byte) 100, (byte) 0);
+					glColor3d(0.0,1.0,0.0);
 
 
 					// render paddle
@@ -116,6 +121,7 @@ public class IOThread
 							gameCtx.getPaddle().getX() + gameCtx.getPaddle().getWidth(),
 							gameCtx.getPaddle().getY() + gameCtx.getPaddle().getHeight());
 
+					glColor3d(1.0,0.0,0.0);
 					//render ball
 					glRectd(gameCtx.getBall().getX(),
 							gameCtx.getBall().getY(),
@@ -126,6 +132,7 @@ public class IOThread
 					for (Brick[] row : gameCtx.getBricks()) {
 						for (Brick b : row) {
 							if (b != null) {
+								glColor3d(Math.random(),Math.random(),Math.random());
 								glRectd(b.getX(),
 										b.getY(),
 										b.getX() + b.getWidth(),
@@ -146,7 +153,7 @@ public class IOThread
 
 		// this method will be called on another thread, so wake up the right thread
 
-		logger.info("Drawing message recieved on thread " + Thread.currentThread().getName());
+		//logger.info("Drawing message recieved on thread " + Thread.currentThread().getName());
 
 		renderRequired = true;
 		notify();

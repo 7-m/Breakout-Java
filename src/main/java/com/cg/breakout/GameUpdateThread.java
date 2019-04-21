@@ -22,7 +22,7 @@ public class GameUpdateThread
 	public void run() {
 		while (!close) {
 			try {
-				sleep(30);
+				sleep(30); // 30 fps
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
@@ -84,77 +84,80 @@ public class GameUpdateThread
 		// check paddle for bottom, any collsion is bounce for paddle
 
 		if (ball.collidesWith(gctx.getPaddle())) {
-			double nang = Math.PI / 2;
 
-			ball.getVelocity().reverse();
-			double angleWith = Math.abs(nang - ball.getVelocity().getAngle());
 
-			if (ball.getX() < gctx.getPaddle().getX() + gctx.getPaddle().getWidth() / 2.0) // bounce left
-				ball.getVelocity().rotateBy(angleWith - Math.random());
-			else
-				ball.getVelocity().rotateBy(-angleWith + Math.random());// randomness prevents ball from entering 90 deg bounce loop
+			// reflection is more if distance of ball from paddle is more
 
-		}
+			double paddleoff = (gctx.getPaddle().getX() + gctx.getPaddle().getWidth() / 2.0) - ball.getX(); // offset from centre of paddle
+			paddleoff = paddleoff / (gctx.getPaddle().getWidth() / 2.0);
 
-		boolean updated = false; // if multiple bricks are hit, then dont apply reflection calculations more than once
-		Brick[][] bricks = gctx.getBricks();
-		for (int i = 0; i < bricks.length; i++) {
-			for (int j = 0; j < bricks[0].length; j++) {
-				if (bricks[i][j] != null && ball.collidesWith(bricks[i][j])) {
-					// determine overlap location
-					// x <= r.x + r.width && x + width >= r.x && y <= r.y + r.height && y + height >= r.y;
 
-					final double delta = 0.09;
-					// ball hitting brick from bottom
-					if (!updated) {
-						if (ball.getY() + ball.getHeight() >= bricks[i][j].getY() && ball.getY() + ball.getHeight() <= bricks[i][j]
-								.getY() + delta) {            // angle normal of top wall is
-							double nang = Math.PI * 3 / 2;
+			ball.getVelocity().rotateTo(Math.PI / 2.0);
+			ball.getVelocity().rotateBy(paddleoff * Math.PI / 4);
 
-							ball.getVelocity().reverse();
-							double angleWith = nang - ball.getVelocity().getAngle();
 
-							ball.getVelocity().rotateBy(2 * angleWith);
+		} else {
+			// check for collsions with bricks
+			boolean updated = false; // if multiple bricks are hit, then dont apply reflection calculations more than once
+			Brick[][] bricks = gctx.getBricks();
+			for (int i = 0; i < bricks.length; i++) {
+				for (int j = 0; j < bricks[0].length; j++) {
+					if (bricks[i][j] != null && ball.collidesWith(bricks[i][j])) {
+						// determine overlap location
+						// x <= r.x + r.width && x + width >= r.x && y <= r.y + r.height && y + height >= r.y;
+
+						final double delta = 0.09;
+						// ball hitting brick from bottom
+						if (!updated) {
+							if (ball.getY() + ball.getHeight() >= bricks[i][j].getY() && ball.getY() + ball.getHeight() <= bricks[i][j]
+									.getY() + delta) {            // angle normal of top wall is
+								double nang = Math.PI * 3 / 2;
+
+								ball.getVelocity().reverse();
+								double angleWith = nang - ball.getVelocity().getAngle();
+
+								ball.getVelocity().rotateBy(2 * angleWith);
+							}
+
+							// ball hitting brick from left
+							else if (ball.getX() + ball.getWidth() >= bricks[i][j].getX() && ball.getX() + ball.getWidth() <= bricks[i][j]
+									.getX() + delta) {            // angle normal of top wall is
+								double nang = Math.PI;
+
+								ball.getVelocity().reverse();
+								double angleWith = nang - ball.getVelocity().getAngle();
+
+								ball.getVelocity().rotateBy(2 * angleWith);
+							}
+
+							// ball hitting brick from rigth
+							else if (ball.getX() <= bricks[i][j].getX() + bricks[i][j].getWidth() && ball.getX() >= bricks[i][j]
+									.getX() + bricks[i][j].getWidth() - delta) {            // angle normal of top wall is
+								double nang = 0;
+
+								ball.getVelocity().reverse();
+								double angleWith = nang - ball.getVelocity().getAngle();
+
+								ball.getVelocity().rotateBy(2 * angleWith);
+							}
+
+							// ball hitting brick from top
+							else if (ball.getY() <= bricks[i][j].getY() + bricks[i][j].getHeight() && ball.getY() >= bricks[i][j]
+									.getY() + bricks[i][j].getHeight() - delta) {            // angle normal of top wall is
+								double nang = Math.PI * 3.0 / 2.0;
+
+								ball.getVelocity().reverse();
+								double angleWith = nang - ball.getVelocity().getAngle();
+
+								ball.getVelocity().rotateBy(2 * angleWith);
+							}
+							updated = true;
 						}
 
-						// ball hitting brick from left
-						else if (ball.getX() + ball.getWidth() >= bricks[i][j].getX() && ball.getX() + ball.getWidth() <= bricks[i][j]
-								.getX() + delta) {            // angle normal of top wall is
-							double nang = Math.PI;
 
-							ball.getVelocity().reverse();
-							double angleWith = nang - ball.getVelocity().getAngle();
+						bricks[i][j] = null;
 
-							ball.getVelocity().rotateBy(2 * angleWith);
-						}
-
-						// ball hitting brick from rigth
-						else if (ball.getX() <= bricks[i][j].getX() + bricks[i][j].getWidth() && ball.getX() >= bricks[i][j]
-								.getX() + bricks[i][j].getWidth() - delta) {            // angle normal of top wall is
-							double nang = 0;
-
-							ball.getVelocity().reverse();
-							double angleWith = nang - ball.getVelocity().getAngle();
-
-							ball.getVelocity().rotateBy(2 * angleWith);
-						}
-
-						// ball hitting brick from top
-						else if (ball.getY() <= bricks[i][j].getY() + bricks[i][j].getHeight() && ball.getY() >= bricks[i][j]
-								.getY() + bricks[i][j].getHeight() - delta) {            // angle normal of top wall is
-							double nang = Math.PI*3.0/2.0;
-
-							ball.getVelocity().reverse();
-							double angleWith = nang - ball.getVelocity().getAngle();
-
-							ball.getVelocity().rotateBy(2 * angleWith);
-						}
-						updated = true;
 					}
-
-
-					bricks[i][j] = null;
-
 				}
 			}
 		}
@@ -170,6 +173,13 @@ public class GameUpdateThread
 			gctx.getPaddle().moveRight();
 
 		bus.post(new DrawEvent());
+
+	}
+
+	@Subscribe
+	void cursorEventListener(CursorPosEvent e) {
+		gctx.getPaddle().setX(e.getXpos());
+
 
 	}
 }
