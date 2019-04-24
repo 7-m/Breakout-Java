@@ -1,5 +1,6 @@
 package com.cg.breakout;
 
+import com.cg.breakout.events.GameStateEvent;
 import com.google.common.eventbus.AsyncEventBus;
 import com.google.common.eventbus.EventBus;
 
@@ -30,12 +31,13 @@ public class Main2 {
 		}
 		GameContext gtx = new GameContext(bricks, paddle, ball);
 
-		IOThread rt = new IOThread(ev, gtx);
+		IOThread rt = new IOThread(ev);
 		rt.start();
 
-		GameUpdateThread gt = new GameUpdateThread(ev, gtx);
+		GameThread gt = new GameThread(ev,gtx);
 		gt.start();
 
+		ev.post(new GameStateEvent(GameState.MENU));
 
 
 	}

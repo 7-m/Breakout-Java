@@ -1,41 +1,39 @@
 package com.cg.breakout;
 
 
+import com.cg.breakout.events.CursorPosEvent;
+import com.cg.breakout.events.KeyPressEvent;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import org.lwjgl.glfw.GLFW;
 
-public class GameUpdateThread
-		extends Thread {
+
+public class GameUpdateThread {
 	EventBus bus;
 	private GameContext gctx;
-	private boolean     close;
+	private boolean     stop;
 
 	public GameUpdateThread(EventBus bus, GameContext gctx) {
-		super(GameUpdateThread.class.getName());
 		this.gctx = gctx;
 		this.bus = bus;
 		bus.register(this);
 	}
 
-	@Override
-	public void run() {
-		while (!close) {
-			try {
-				sleep(30); // 30 fps
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
 
-			gctx.getBall().move();
-			// detect collisons
+	/**
+	 * Runs a single game loop and updates the gameContext.
+	 */
+	public void runLoop() {
 
-			checkCollision();
 
-			// ready to render new contents
-			bus.post(new DrawEvent());
+		gctx.getBall().move();
+		// detect collisons
 
-		}
+		checkCollision();
+
+		// ready to render new contents
+
+
 	}
 
 	private void checkCollision() {
@@ -98,8 +96,10 @@ public class GameUpdateThread
 
 		} else {
 			// check for collsions with bricks
-			boolean updated = false; // if multiple bricks are hit, then dont apply reflection calculations more than once
+
 			Brick[][] bricks = gctx.getBricks();
+
+			OUTER:
 			for (int i = 0; i < bricks.length; i++) {
 				for (int j = 0; j < bricks[0].length; j++) {
 					if (bricks[i][j] != null && ball.collidesWith(bricks[i][j])) {
@@ -108,54 +108,53 @@ public class GameUpdateThread
 
 						final double delta = 0.09;
 						// ball hitting brick from bottom
-						if (!updated) {
-							if (ball.getY() + ball.getHeight() >= bricks[i][j].getY() && ball.getY() + ball.getHeight() <= bricks[i][j]
-									.getY() + delta) {            // angle normal of top wall is
-								double nang = Math.PI * 3 / 2;
 
-								ball.getVelocity().reverse();
-								double angleWith = nang - ball.getVelocity().getAngle();
+						if (ball.getY() + ball.getHeight() >= bricks[i][j].getY() && ball.getY() + ball.getHeight() <= bricks[i][j]
+								.getY() + delta) {            // angle normal of top wall is
+							double nang = Math.PI * 3 / 2;
 
-								ball.getVelocity().rotateBy(2 * angleWith);
-							}
+							ball.getVelocity().reverse();
+							double angleWith = nang - ball.getVelocity().getAngle();
 
-							// ball hitting brick from left
-							else if (ball.getX() + ball.getWidth() >= bricks[i][j].getX() && ball.getX() + ball.getWidth() <= bricks[i][j]
-									.getX() + delta) {            // angle normal of top wall is
-								double nang = Math.PI;
+							ball.getVelocity().rotateBy(2 * angleWith);
+						}
 
-								ball.getVelocity().reverse();
-								double angleWith = nang - ball.getVelocity().getAngle();
+						// ball hitting brick from left
+						else if (ball.getX() + ball.getWidth() >= bricks[i][j].getX() && ball.getX() + ball.getWidth() <= bricks[i][j]
+								.getX() + delta) {            // angle normal of top wall is
+							double nang = Math.PI;
 
-								ball.getVelocity().rotateBy(2 * angleWith);
-							}
+							ball.getVelocity().reverse();
+							double angleWith = nang - ball.getVelocity().getAngle();
 
-							// ball hitting brick from rigth
-							else if (ball.getX() <= bricks[i][j].getX() + bricks[i][j].getWidth() && ball.getX() >= bricks[i][j]
-									.getX() + bricks[i][j].getWidth() - delta) {            // angle normal of top wall is
-								double nang = 0;
+							ball.getVelocity().rotateBy(2 * angleWith);
+						}
 
-								ball.getVelocity().reverse();
-								double angleWith = nang - ball.getVelocity().getAngle();
+						// ball hitting brick from rigth
+						else if (ball.getX() <= bricks[i][j].getX() + bricks[i][j].getWidth() && ball.getX() >= bricks[i][j]
+								.getX() + bricks[i][j].getWidth() - delta) {            // angle normal of top wall is
+							double nang = 0;
 
-								ball.getVelocity().rotateBy(2 * angleWith);
-							}
+							ball.getVelocity().reverse();
+							double angleWith = nang - ball.getVelocity().getAngle();
 
-							// ball hitting brick from top
-							else if (ball.getY() <= bricks[i][j].getY() + bricks[i][j].getHeight() && ball.getY() >= bricks[i][j]
-									.getY() + bricks[i][j].getHeight() - delta) {            // angle normal of top wall is
-								double nang = Math.PI * 3.0 / 2.0;
+							ball.getVelocity().rotateBy(2 * angleWith);
+						}
 
-								ball.getVelocity().reverse();
-								double angleWith = nang - ball.getVelocity().getAngle();
+						// ball hitting brick from top
+						else if (ball.getY() <= bricks[i][j].getY() + bricks[i][j].getHeight() && ball.getY() >= bricks[i][j]
+								.getY() + bricks[i][j].getHeight() - delta) {            // angle normal of top wall is
+							double nang = Math.PI * 3.0 / 2.0;
 
-								ball.getVelocity().rotateBy(2 * angleWith);
-							}
-							updated = true;
+							ball.getVelocity().reverse();
+							double angleWith = nang - ball.getVelocity().getAngle();
+
+							ball.getVelocity().rotateBy(2 * angleWith);
 						}
 
 
 						bricks[i][j] = null;
+						break OUTER; // only update 1 brick
 
 					}
 				}
@@ -172,7 +171,6 @@ public class GameUpdateThread
 		else if (e.getKey() == GLFW.GLFW_KEY_RIGHT)
 			gctx.getPaddle().moveRight();
 
-		bus.post(new DrawEvent());
 
 	}
 
