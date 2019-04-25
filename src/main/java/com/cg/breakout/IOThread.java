@@ -30,7 +30,7 @@ public class IOThread
 	private             GLFWErrorCallback errorCallback;
 	private             long              window;
 	private             GLFWKeyCallback   keyCallback;
-	volatile private             GameContext       gameCtx;
+	volatile private    GameContext       gameCtx;
 	volatile private    boolean           renderRequired;
 	volatile private    GameState         gameState;
 	//private GameStateEvent lastEvent;
@@ -110,6 +110,11 @@ public class IOThread
 		glfwMakeContextCurrent(window);
 		GL.createCapabilities();
 
+		glMatrixMode(GL_PROJECTION);
+		glLoadIdentity();
+		glOrtho(0.0, 1.0, 0.0, 1.0, 1.0, -1.0);
+		glMatrixMode(GL_MODELVIEW);
+
 
 		while (!glfwWindowShouldClose(window)) {
 
@@ -132,10 +137,7 @@ public class IOThread
 
 							//glClearColor(0.8f,0.5f,1.0f,1.0f);
 
-							glMatrixMode(GL_PROJECTION);
-							glLoadIdentity();
-							glOrtho(0.0, 1.0, 0.0, 1.0, 1.0, -1.0);
-							glMatrixMode(GL_MODELVIEW);
+
 
 
 							glColor3d(0.0, 1.0, 0.0);
@@ -169,37 +171,20 @@ public class IOThread
 							break;
 
 						case MENU:
-							String text = "Press enter to play";
-							ByteBuffer charBuffer = BufferUtils.createByteBuffer(text.length() * 270);
-
-							int quads = stb_easy_font_print(0, 0, text, null, charBuffer);
-
-							glEnableClientState(GL_VERTEX_ARRAY);
-							glVertexPointer(2, GL_FLOAT, 16, charBuffer);
-
-							glColor3f(169f / 255f, 183f / 255f, 198f / 255f); // Text color
-
-
 							glClear(GL_COLOR_BUFFER_BIT);
-
-							float scaleFactor = 0.01f;
-							// for bounding
-							glRectd(0.0, 0.0, 0.2, 0.2);
-							glPushMatrix();
-							glLoadIdentity();
-
-							glTranslated(0.0, 0.1, 0.0f);
-							// Zoom
-							glScalef(scaleFactor, -scaleFactor, scaleFactor);
-							// Scroll
-
-							glColor3d(1, 0, 0);
-							glDrawArrays(GL_QUADS, 0, quads * 4);
-
-							glPopMatrix();
+							String text = "Press enter to play\n";
+							drawString(text, 0.0f, 0.0f,1.0f,0.0f,0.0f);
+							drawString("BREAKOUT\n", 0.0f,0.5f,0.0f,1.0f,0.0f);
+							break;
 
 
-							glDisableClientState(GL_VERTEX_ARRAY);
+						case LOSE:
+							glClear(GL_COLOR_BUFFER_BIT);
+							drawString("YOU LOST :(",0.2f,0.5f,0.0f,1.0f,0.0f);
+							break;
+
+						case PAUSE:
+							break;
 					}
 					glfwSwapBuffers(window);
 				}
@@ -208,6 +193,38 @@ public class IOThread
 			}
 		}
 
+	}
+
+	private void drawString(String text, float x, float y, float red, float green, float blue) {
+		ByteBuffer charBuffer = BufferUtils.createByteBuffer(text.length() * 270);
+
+		int quads = stb_easy_font_print(0,0, text, null, charBuffer);
+
+		glEnableClientState(GL_VERTEX_ARRAY);
+		glVertexPointer(2, GL_FLOAT, 16, charBuffer);
+
+		glColor3f(red,green,blue); // Text color
+
+
+		//glClear(GL_COLOR_BUFFER_BIT);
+
+		float scaleFactor = 0.005f;
+
+		glPushMatrix();
+		glLoadIdentity();
+
+		glTranslated(x, y+0.05f, 0.0f);
+		// Zoom
+		glScalef(scaleFactor, -scaleFactor, scaleFactor);
+		// Scroll
+
+
+		glDrawArrays(GL_QUADS, 0, quads * 4);
+
+		glPopMatrix();
+
+
+		glDisableClientState(GL_VERTEX_ARRAY);
 	}
 
 
@@ -221,13 +238,13 @@ public class IOThread
 				gameState = event.getGameState();
 				break;
 			case PAUSE:
+				gameState = event.getGameState();
 				break;
 			case EXIT:
 				break;
 			case MENU:
-				gameState = event.getGameState();
-				break;
 			case LOSE:
+				gameState = event.getGameState();
 				break;
 			case WIN:
 				break;
