@@ -11,10 +11,11 @@ import java.util.Map;
 
 public class GameThread
 		extends Thread {
-	public static final String GAMECTX = "gamectx";
-	volatile GameState gameState = GameState.MENU;
+	public static final String    GAMECTX          = "gamectx";
+	volatile            GameState currentGameState = GameState.MENU;
 	EventBus    eventBus;
 	GameContext gctx;
+	private boolean paused;
 
 	public GameThread(EventBus eventBus, GameContext gctx) {
 		this.gctx = gctx;
@@ -24,37 +25,112 @@ public class GameThread
 	@Subscribe
 	void keyboardEnterListener(KeyPressEvent e) {
 		// change game state to play and notify on bus
-		if (e.getKey() == GLFW.GLFW_KEY_ENTER) {
-			gameState = GameState.PLAY;
-			Map<String, Object> extra = new HashMap<>();
-			extra.put(GAMECTX, gctx);
-			eventBus.post(new GameStateEvent(GameState.PLAY,extra));
+		switch (currentGameState) {
+			case MENU:
+				if (e.getKey() == GLFW.GLFW_KEY_ENTER && e.getAction() == GLFW.GLFW_PRESS) {
+					currentGameState = GameState.PLAY;
+					Map<String, Object> extra = new HashMap<>();
+					extra.put(GAMECTX, gctx);
+					eventBus.post(new GameStateEvent(GameState.PLAY, extra));
+					synchronized (this) {
+						notify();
+					}
+				}
+
+				if (e.getKey() == GLFW.GLFW_KEY_ESCAPE && e.getAction() == GLFW.GLFW_PRESS) {
+					System.exit(0);
+				}
+
+				break;
+
+			case PLAY:
+				if (e.getKey() == GLFW.GLFW_KEY_ESCAPE && e.getAction() == GLFW.GLFW_PRESS) {
+					currentGameState = GameState.PAUSE;
+					paused=true;
+					eventBus.post(new GameStateEvent(GameState.PAUSE));
+				}
+				break;
+
+			case PAUSE:
+				if (e.getKey() == GLFW.GLFW_KEY_ESCAPE && e.getAction() == GLFW.GLFW_PRESS) {
+					synchronized (this) {
+						paused = false;
+						currentGameState = GameState.PLAY;
+
+						Map<String, Object> extra = new HashMap<>();
+						extra.put(GAMECTX, gctx);
+						eventBus.post(new GameStateEvent(GameState.PLAY, extra));
+
+						notify();
+					}
+
+				}
+				break;
 		}
 
+	}
+
+	@Subscribe
+	void gameStateListener(GameStateEvent e) {
+		currentGameState = e.getGameState();
 	}
 
 	@Override
 	public void run() {
 		eventBus.register(this);
 		GameUpdateThread game = new GameUpdateThread(eventBus, gctx);
-		while (!gameState.equals(GameState.EXIT)) {
-			try {
-				sleep(30); // frame rate of the app is 30 fps
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
-			// GameState oldState = gameState;
+		while (!currentGameState.equals(GameState.EXIT)) {
 
-			switch (gameState) {
+
+			switch (currentGameState) {
 				case PLAY: // run the game on this thread
+					try {
+						sleep(30);
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
 					game.runLoop();
 					break;
 
-				case PAUSE:
+				case MENU:
+					synchronized (this) {
+						try {
+							wait();
+						} catch (InterruptedException e) {
 
+
+						}
+					}
+					break;
+				case WIN:
+				case LOSE:
+
+
+					synchronized (this) {
+						try {
+							gctx.reset();
+							sleep(5*1000);
+							currentGameState = GameState.MENU;
+							eventBus.post(new GameStateEvent(GameState.MENU));
+						} catch (InterruptedException e) {
+
+
+						}
+					}
 					break;
 
-				case MENU:
+				case PAUSE:
+					synchronized (this) {
+						try {
+							eventBus.post(new GameStateEvent(GameState.PAUSE)); // dont update any thing
+							while (paused) {
+								wait(); //todo: spurious waking
+							}
+						} catch (InterruptedException e) {
+
+
+						}
+					}
 
 			}
 		}

@@ -2,6 +2,7 @@ package com.cg.breakout;
 
 
 import com.cg.breakout.events.CursorPosEvent;
+import com.cg.breakout.events.GameStateEvent;
 import com.cg.breakout.events.KeyPressEvent;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
@@ -76,6 +77,14 @@ public class GameUpdateThread {
 			double angleWith = nang - ball.getVelocity().getAngle();
 
 			ball.getVelocity().rotateBy(2 * angleWith);
+
+		}
+
+		// check for bottom hit
+
+		// check top wall
+		if (ball.getY() < 0.0) {
+			bus.post(new GameStateEvent(GameState.LOSE));
 
 		}
 
