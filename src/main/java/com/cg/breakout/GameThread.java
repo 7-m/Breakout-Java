@@ -12,6 +12,7 @@ import java.util.Map;
 public class GameThread
 		extends Thread {
 	public static final String    GAMECTX          = "gamectx";
+	private final GameContext gctxCopy;
 	volatile            GameState currentGameState = GameState.MENU;
 	EventBus    eventBus;
 	GameContext gctx;
@@ -20,6 +21,7 @@ public class GameThread
 	public GameThread(EventBus eventBus, GameContext gctx) {
 		this.gctx = gctx;
 		this.eventBus = eventBus;
+		this.gctxCopy = new GameContext(gctx);
 	}
 
 	@Subscribe
@@ -79,7 +81,7 @@ public class GameThread
 	public void run() {
 		eventBus.register(this);
 		GameUpdateThread game = new GameUpdateThread(eventBus, gctx);
-		while (!currentGameState.equals(GameState.EXIT)) {
+		while (true) {
 
 
 			switch (currentGameState) {
@@ -102,14 +104,15 @@ public class GameThread
 						}
 					}
 					break;
-				case WIN:
-				case LOSE:
+
+				case END:
 
 
 					synchronized (this) {
 						try {
-							gctx.reset();
-							sleep(5*1000);
+							gctx = new GameContext(gctxCopy);
+							game = new GameUpdateThread(eventBus, gctx);
+							sleep(3*1000);
 							currentGameState = GameState.MENU;
 							eventBus.post(new GameStateEvent(GameState.MENU));
 						} catch (InterruptedException e) {

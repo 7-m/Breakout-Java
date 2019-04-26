@@ -8,7 +8,7 @@ public class TestRendering {
 	@Test
 	void events() throws InterruptedException {
 		EventBus ev = new EventBus();
-		GameContext gtx = new GameContext(null, null, null);
+		GameContext gtx = new GameContext(null, null, null,0);
 
 		IOThread rt = new IOThread(ev);
 		rt.start();
