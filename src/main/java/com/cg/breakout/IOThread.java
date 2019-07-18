@@ -182,6 +182,10 @@ public class IOThread
 							String text = "Press enter to play\n";
 							drawString(text, 0.0f, 0.0f,1.0f,0.0f,0.0f);
 							drawString("BREAKOUT\n", 0.0f,0.5f,0.0f,1.0f,0.0f);
+							drawString(" Mufaddal -87\n",0.2f,0.4f,0.0f,1.0f,1.0f );
+							drawString(" Kaushik -81\n",0.2f,0.35f,0.0f,1.0f,1.0f );
+
+
 							break;
 
 

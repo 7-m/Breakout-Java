@@ -1,9 +1,12 @@
 plugins {
     id 'java'
+    id 'application'
 }
 
 group 'com.cg'
 version '1.0-SNAPSHOT'
+
+mainClassName = 'com.cg.breakout.Main2'
 
 sourceCompatibility = 1.8
 
