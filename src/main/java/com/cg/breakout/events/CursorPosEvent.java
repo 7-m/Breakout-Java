@@ -1,4 +1,4 @@
-package com.cg.breakout;
+package com.cg.breakout.events;
 
 public class CursorPosEvent {
 	final private double xpos, ypos;

@@ -1,4 +1,4 @@
-package com.cg.breakout;
+package com.cg.breakout.events;
 
 /**
  * Event representing a key press.

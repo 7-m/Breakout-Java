@@ -8,6 +8,11 @@ public class Paddle
 
 	}
 
+	public Paddle(Paddle paddle) {
+		super(paddle);
+	}
+
+
 	void moveLeft() {
 		if (getX() > 0.0)
 			setX(getX() - 0.02);
