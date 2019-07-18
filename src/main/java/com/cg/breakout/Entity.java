@@ -9,6 +9,12 @@ public class Entity {
 		this.height = height;
 	}
 
+	public Entity(Entity old){
+		this(old.width, old.height);
+		this.x = old.x;
+		this.y = old.y;
+	}
+
 	public double getHeight() {
 		return height;
 	}

@@ -101,6 +101,8 @@ public class IOThread
 			glfwSetCursorPosCallback(window, (window2, xpos, ypos) -> bus.post(new CursorPosEvent(xpos / width, ypos / height)));
 		});
 
+		glfwSetWindowCloseCallback(window, window1 -> System.exit(0));
+
 
 	}
 
@@ -168,6 +170,11 @@ public class IOThread
 									}
 								}
 							}
+
+							// render score
+
+							drawString("SCORE\n", 0.3f, 0.9f, 1.0f, 1.0f, 1.0f);
+							drawString(gameCtx.getScore()+"\n", 0.7f, 0.9f, 1.0f, 1.0f, 1.0f);
 							break;
 
 						case MENU:
@@ -175,16 +182,21 @@ public class IOThread
 							String text = "Press enter to play\n";
 							drawString(text, 0.0f, 0.0f,1.0f,0.0f,0.0f);
 							drawString("BREAKOUT\n", 0.0f,0.5f,0.0f,1.0f,0.0f);
+							drawString(" Mufaddal -87\n",0.2f,0.4f,0.0f,1.0f,1.0f );
+							drawString(" Kaushik -81\n",0.2f,0.35f,0.0f,1.0f,1.0f );
+
+
 							break;
 
 
-						case LOSE:
+						case END:
 							glClear(GL_COLOR_BUFFER_BIT);
-							drawString("YOU LOST :(",0.2f,0.5f,0.0f,1.0f,0.0f);
+							drawString("FINAL SCORE\n"+gameCtx.getScore()+"\n",0.2f,0.5f,0.0f,1.0f,0.0f);
 							break;
 
 						case PAUSE:
-							break;
+							glClear(GL_COLOR_BUFFER_BIT);
+							drawString("PAUSED\n",0.3f,0.5f,0.0f,1.0f,0.0f);
 					}
 					glfwSwapBuffers(window);
 				}
@@ -240,14 +252,11 @@ public class IOThread
 			case PAUSE:
 				gameState = event.getGameState();
 				break;
-			case EXIT:
-				break;
 			case MENU:
-			case LOSE:
+			case END:
 				gameState = event.getGameState();
 				break;
-			case WIN:
-				break;
+
 		}
 		notify();
 

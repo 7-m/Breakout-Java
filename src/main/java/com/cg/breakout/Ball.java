@@ -5,11 +5,16 @@ public class Ball
 	/* velocity vectors*/
 	Vector2D vel;
 
-	public Ball(double width, double height) {
+	public Ball(double width, double height, double x, double y) {
 		super(width, height);
-		setX(0.5);
-		setY(0.5);
-		vel = new Vector2D(0.001, 0.01);
+		setX(x);
+		setY(y);
+		vel = new Vector2D(0.01, 0.01);
+	}
+
+	public Ball(Ball ball) {
+		super(ball);
+		this.vel = new Vector2D(ball.getVelocity());
 	}
 
 	public void move() {
@@ -22,5 +27,11 @@ public class Ball
 
 	Vector2D getVelocity() {
 		return vel;
+	}
+
+	public void increaseVelocity() {
+		if (vel.getLength() < 0.05){ // after years of advanced  researchs
+			vel.multiply(1.03);
+		}
 	}
 }

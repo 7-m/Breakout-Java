@@ -6,19 +6,35 @@ import java.util.Arrays;
  * Represents the current state of the game i.e play, pause or current bricks, paddle, ball etc
  */
 public class GameContext {
-	final Paddle paddle;
-	final Ball   ball;
-	Brick[][] bricks;
-	final Brick[][] copyOfBricks;
+	final Paddle    paddle;
+	final Ball      ball;
 
-	public GameContext(Brick[][] bricks, Paddle paddle, Ball ball) {
-		this.copyOfBricks = makeCopy(bricks);
+	Brick[][] bricks;
+	private int score;
+	final private int maxscore;
+
+	public GameContext(Brick[][] bricks, Paddle paddle, Ball ball, int maxscore) {
+
 		this.bricks = bricks;
 		this.paddle = paddle;
 		this.ball = ball;
+		this.maxscore = maxscore;
 	}
 
-	private Brick[][] makeCopy(Brick[][] bricks) {
+	public GameContext(GameContext old) {
+		this(makeCopy(old.getBricks()), new Paddle(old.paddle), new Ball(old.ball), old.maxscore);
+		this.score=old.score;
+	}
+
+	public void incrementScore() {
+		score++;
+	}
+
+	public int getMaxscore() {
+		return maxscore;
+	}
+
+	static private Brick[][] makeCopy(Brick[][] bricks) {
 		Brick[][] copy = new Brick[bricks.length][bricks[0].length];
 
 		for (int i = 0; i < copy.length; i++) {
@@ -41,12 +57,11 @@ public class GameContext {
 		return ball;
 	}
 
-	void reset() {
-		this.bricks = makeCopy(copyOfBricks);
-		//ball.getVelocity().reverse();
-		ball.setX(paddle.getX());
-		ball.setY(0.15);
+	public int getScore() {
+		return score;
 	}
+
+
 
 
 }
